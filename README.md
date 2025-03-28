@@ -65,3 +65,29 @@ class DrinksController {
   }
 }
 ```
+
+### Post processing
+
+Sometimes decorators just don't cut it and you want to make alterations after `@nestjs/swagger`'s
+`buildSwaggerDocument()` is done.
+
+For this, this package provides a traversal utility `traverseDocument` which can be configured with visitors.
+
+Example:
+```ts
+
+const MyVisitor: SchemaVisitor = (schema) => {
+  if (matchesSomeCondition(schema)) {
+    // modify schema in place
+  }
+}
+
+const document = buildSwaggerDocument(app);
+traverseDocument(document, {
+  propertyVisitors: [
+    Length1AllOfToOneOf, // convert allOf's with one entry to oneOf's
+    MoveNullableToOneof, // move a nullable:true into a sibling oneOf
+    MyVisitor            // your own
+  ]
+})
+```
