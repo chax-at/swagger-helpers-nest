@@ -11,8 +11,8 @@ import { SchemaVisitor } from "./postProcessing.types";
  * const document = buildSwaggerDocument(app);
  * traverseDocument(document, {
  *   propertyVisitors: [
- *     Length1AllOfToOneOf,
- *     MoveNullableToOneof
+ *     Length1AllOfToOneOfVisitor,
+ *     MoveNullableToOneOfVisitor
  *   ]
  * })
  * ```
@@ -55,7 +55,7 @@ export function traverseDocument(swaggerDocument: OpenAPIObject, {
  * }
  * ```
  */
-export const Length1AllOfToOneOf: SchemaVisitor = (propSchema) => {
+export const Length1AllOfToOneOfVisitor: SchemaVisitor = (propSchema) => {
   if ('allOf' in propSchema && propSchema.allOf?.length === 1 && !propSchema.oneOf) {
     propSchema.oneOf = propSchema.allOf;
     delete propSchema.allOf;
@@ -86,7 +86,7 @@ export const Length1AllOfToOneOf: SchemaVisitor = (propSchema) => {
  * }
  * ```
  */
-export const MoveNullableToOneof: SchemaVisitor = (propSchema) => {
+export const MoveNullableToOneOfVisitor: SchemaVisitor = (propSchema) => {
   if ('oneOf' in propSchema && propSchema.oneOf && propSchema.nullable) {
     delete propSchema.nullable;
     propSchema.oneOf.push({ nullable: true });

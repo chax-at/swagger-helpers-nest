@@ -85,8 +85,8 @@ const MyVisitor: SchemaVisitor = (schema) => {
 const document = buildSwaggerDocument(app);
 traverseDocument(document, {
   propertyVisitors: [
-    Length1AllOfToOneOf, // convert allOf's with one entry to oneOf's
-    MoveNullableToOneof, // move a nullable:true into a sibling oneOf
+    Length1AllOfToOneOfVisitor, // convert allOf's with one entry to oneOf's
+    MoveNullableToOneOfVisitor, // move a nullable:true into a sibling oneOf
     MyVisitor            // your own
   ]
 })
