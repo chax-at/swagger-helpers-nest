@@ -87,6 +87,21 @@ export function ApiPropertyEnum(
 }
 
 /**
+ * Decorated property is a file.
+ * 
+ * @example
+ * class UploadDto {
+ *   ApiPropertyFile()
+ *   public file!: Express.Multer.File;
+ * }
+ */
+export function ApiPropertyFile(): PropertyDecorator {
+  return (...params) => {
+    ApiProperty({ type: 'string', format: 'binary' })(...params);
+  };
+}
+
+/**
  * Decorated controller method returns one of the given response DTO types.
  * The DTO types are automatically registered into the documentation.
  * 
@@ -118,5 +133,30 @@ export function ApiCreatedResponseOneOf(...types: Type<any>[]): MethodDecorator 
   return (target, ...rest) => {
     ApiExtraModels(...types)(target.constructor);
     ApiCreatedResponse({ schema: { oneOf: refs(...types) } })(target, ...rest);
+  };
+}
+
+/**
+ * Decorated controller method returns a file.
+ * 
+ * @example
+ * ＠ApiResponseFile()
+ * public download(): Promise<void> {
+ *   const buffer = this.fileService.getFileBuffer();
+ *   response.status(200).send(buffer);
+ * }
+ */
+export function ApiResponseFile(): MethodDecorator {
+  return (...params) => {
+    ApiResponse({
+      content: {
+        'application/octet-stream': {
+          schema: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    })(...params);
   };
 }
