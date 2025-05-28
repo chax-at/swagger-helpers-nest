@@ -1,5 +1,5 @@
 import type { Type } from '@nestjs/common';
-import { ApiCreatedResponse, ApiExtraModels, ApiProperty, ApiResponse, refs } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiExtraModels, ApiOkResponse, ApiProperty, refs } from '@nestjs/swagger';
 
 /**
  * Decorated property can be one of the given DTO types.
@@ -114,7 +114,7 @@ export function ApiPropertyFile(): PropertyDecorator {
 export function ApiResponseOneOf(...types: Type<any>[]): MethodDecorator {
   return (target, ...rest) => {
     ApiExtraModels(...types)(target.constructor);
-    ApiResponse({ schema: { oneOf: refs(...types) } })(target, ...rest);
+    ApiOkResponse({ schema: { oneOf: refs(...types) } })(target, ...rest);
   };
 }
 
@@ -148,7 +148,7 @@ export function ApiCreatedResponseOneOf(...types: Type<any>[]): MethodDecorator 
  */
 export function ApiResponseFile(): MethodDecorator {
   return (...params) => {
-    ApiResponse({
+    ApiOkResponse({
       content: {
         'application/octet-stream': {
           schema: {
