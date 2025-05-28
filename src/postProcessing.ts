@@ -1,5 +1,5 @@
 import type { OpenAPIObject } from "@nestjs/swagger";
-import { SchemaVisitor } from "./postProcessing.types";
+import { Method, OperationVisitor, SchemaVisitor } from "./postProcessing.types";
 
 /**
  * a generic and configurable traversal function
@@ -18,15 +18,51 @@ import { SchemaVisitor } from "./postProcessing.types";
  * ```
  */
 export function traverseDocument(swaggerDocument: OpenAPIObject, {
-  propertyVisitors = [],
+  operationVisitors,
+  propertyVisitors,
 }: {
+  operationVisitors?: OperationVisitor[],
   propertyVisitors?: SchemaVisitor[],
 } = {}): void {
-  if (propertyVisitors.length) {
+  if (operationVisitors?.length) {
+    const methods = ['delete', 'get', 'get', 'head', 'options', 'patch', 'post', 'put'] satisfies Method[];
+
+    // traverse all paths
+    for (const path of Object.keys(swaggerDocument.paths) as (keyof typeof swaggerDocument['paths'])[]) {
+      const pathItem = swaggerDocument.paths[path];
+      let anOperationWasDeleted = false;
+
+      // traverse all methods in the path
+      for (const method of methods) {
+        const operation = pathItem[method];
+        if (!operation) continue;
+
+        for (const visitor of operationVisitors) {
+          const result = visitor(operation, method, path);
+
+          // delete the method if 'delete' is returned
+          if (result === 'delete') {
+            delete pathItem[method];
+            anOperationWasDeleted = true;
+            break;
+          }
+        }
+      }
+
+      // if an operation was deleted, check if the path itself should be deleted too
+      if (anOperationWasDeleted && !pathItem.$ref && methods.every(m => !pathItem[m])) {
+        delete swaggerDocument.paths[path];
+      }
+    }
+  }
+
+  if (propertyVisitors?.length) {
     for (const schema of Object.values(swaggerDocument.components?.schemas ?? {})) {
       if ('properties' in schema) {
         for (const [propName, propSchema] of Object.entries(schema.properties ?? {})) {
-          for (const visitor of propertyVisitors) visitor(propSchema, propName);
+          for (const visitor of propertyVisitors) {
+            visitor(propSchema, propName);
+          }
         }
       }
     }
