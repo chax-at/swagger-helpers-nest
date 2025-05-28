@@ -18,8 +18,8 @@ import { Method, OperationVisitor, SchemaVisitor } from "./postProcessing.types"
  * ```
  */
 export function traverseDocument(swaggerDocument: OpenAPIObject, {
-  operationVisitors = [],
-  propertyVisitors = [],
+  operationVisitors,
+  propertyVisitors,
 }: {
   operationVisitors?: OperationVisitor[],
   propertyVisitors?: SchemaVisitor[],
@@ -56,7 +56,7 @@ export function traverseDocument(swaggerDocument: OpenAPIObject, {
     }
   }
 
-  if (propertyVisitors.length) {
+  if (propertyVisitors?.length) {
     for (const schema of Object.values(swaggerDocument.components?.schemas ?? {})) {
       if ('properties' in schema) {
         for (const [propName, propSchema] of Object.entries(schema.properties ?? {})) {
