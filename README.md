@@ -74,20 +74,32 @@ Sometimes decorators just don't cut it and you want to make alterations after `@
 For this, this package provides a traversal utility `traverseDocument` which can be configured with visitors.
 
 Example:
-```ts
 
+```ts
 const MyVisitor: SchemaVisitor = (schema) => {
   if (matchesSomeCondition(schema)) {
     // modify schema in place
   }
-}
+};
 
 const document = buildSwaggerDocument(app);
 traverseDocument(document, {
   propertyVisitors: [
     Length1AllOfToOneOfVisitor, // convert allOf's with one entry to oneOf's
     MoveNullableToOneOfVisitor, // move a nullable:true into a sibling oneOf
-    MyVisitor            // your own
-  ]
-})
+    MyVisitor, // your own
+  ],
+  operationVisitors: [
+    // an example visitor that adds an operation's method as a tag
+    (op, method) => {
+      op.tags.push(method);
+    },
+    // an example visitor that removes operations based on a tag
+    (op) => {
+      if (op.tags?.include('DoNotExpose')) {
+        return 'delete';
+      }
+    },
+  ],
+});
 ```
