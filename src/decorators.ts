@@ -31,7 +31,11 @@ export function ApiPropertyOneOf(...types: Type<any>[]): PropertyDecorator {
 export function ApiPropertyArrayOf(...types: Type<any>[]): PropertyDecorator {
   return (target, propertyKey) => {
     ApiExtraModels(...types)(target.constructor);
-    ApiProperty({ type: 'array', items: { oneOf: refs(...types) } })(target, propertyKey);
+    if (types.length === 1) {
+      ApiProperty({ type: 'array', items: refs(...types)[0] })(target, propertyKey)
+    } else {
+      ApiProperty({ type: 'array', items: { oneOf: refs(...types) } })(target, propertyKey);
+    }
   };
 }
 
@@ -60,15 +64,40 @@ export function ApiPropertyOfValue<T>(value: T): PropertyDecorator {
  *   ＠ApiPropertyEnum({ Status })
  *   public status!: Status;
  * }
+ * 
+ * class PermissionResponse {
+ *   ＠ApiPropertyEnum({ Permission }, { isArray: true })
+ *   public permissions!: Permission[];
+ * }
  */
-export function ApiPropertyEnum(enumDictionary: { [P in string]?: Record<string, any> }): PropertyDecorator {
+export function ApiPropertyEnum(
+  enumDictionary: { [P in string]?: Record<string, any> },
+  options?: {
+    isArray?: boolean
+  }
+): PropertyDecorator {
   return (target, propertyKey) => {
     const entries = Object.entries(enumDictionary);
     if (entries.length === 1) {
-      ApiProperty({ enum: entries[0]?.[1], enumName: entries[0]?.[0] })(target, propertyKey);
+      ApiProperty({ enum: entries[0]?.[1], enumName: entries[0]?.[0], isArray: options?.isArray })(target, propertyKey);
     } else {
       throw new Error('ApiPropertyEnum must have exactly one entry');
     }
+  };
+}
+
+/**
+ * Decorated property is a file.
+ * 
+ * @example
+ * class UploadDto {
+ *   ApiPropertyFile()
+ *   public file!: Express.Multer.File;
+ * }
+ */
+export function ApiPropertyFile(): PropertyDecorator {
+  return (...params) => {
+    ApiProperty({ type: 'string', format: 'binary' })(...params);
   };
 }
 
@@ -104,5 +133,30 @@ export function ApiCreatedResponseOneOf(...types: Type<any>[]): MethodDecorator 
   return (target, ...rest) => {
     ApiExtraModels(...types)(target.constructor);
     ApiCreatedResponse({ schema: { oneOf: refs(...types) } })(target, ...rest);
+  };
+}
+
+/**
+ * Decorated controller method returns a file.
+ * 
+ * @example
+ * ＠ApiResponseFile()
+ * public download(): Promise<void> {
+ *   const buffer = this.fileService.getFileBuffer();
+ *   response.status(200).send(buffer);
+ * }
+ */
+export function ApiResponseFile(): MethodDecorator {
+  return (...params) => {
+    ApiResponse({
+      content: {
+        'application/octet-stream': {
+          schema: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    })(...params);
   };
 }

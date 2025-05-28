@@ -5,7 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## 0.3.0
-introduce operation visitors for post processing
+post processing: introduce operation visitors
+
+decorator ApiPropertyFile: new
+decorator ApiResponseFile: new
+
+decorator ApiPropertyArrayOf: no oneOf wrapping if only one type is given
+decorator ApiPropertyEnum: option isArray
 
 ## 0.2.0
 Introduce post processing
