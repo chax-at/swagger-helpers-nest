@@ -1,6 +1,6 @@
 {
   "name": "@chax-at/swagger-helpers-nest",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A set of tools and decorators to have an easier time generating OpenAPI (swagger) docs with @nestjs/swagger",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
